@@ -21,7 +21,7 @@ Generally speaking this works fine, but if you link to libraries that themselves
 
 # Help
 ```
-./generate-wrapper.py --hel
+./generate-wrapper.py --help
 usage: generate-wrapper.py [-h] --include INCLUDE --sys-include SYS_INCLUDE --soname SONAME --init-name INIT_NAME --output-header OUTPUT_HEADER --output-implementation OUTPUT_IMPLEMENTATION [--omit-prefix OMIT_PREFIX]
 
 A tool to generate wrappers for run-time dlopen()ing of libraries.

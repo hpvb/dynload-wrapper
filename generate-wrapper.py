@@ -57,9 +57,9 @@ def stringify_declaration(ext, t):
         return(f"{' '.join(t.quals)} {' '.join(t.type.names)}{pointer}")
     elif isinstance(t, ArrayDecl):
         if t.dim:
-            return(f"{stringify_declaration(ext, t.type)} {' '.join(t.type.quals)} [{t.dim.value}]")
+            return(f"{stringify_declaration(ext, t.type)} [{t.dim.value}]")
         else:
-            return(f"{stringify_declaration(ext, t.type)} {' '.join(t.type.quals)} []")
+            return(f"{stringify_declaration(ext, t.type)} []")
     elif isinstance(t.type, TypeDecl):
         return(f"{' '.join(t.type.quals)} {' '.join(t.type.type.names)}{pointer}")
     elif isinstance(t.type, FuncDecl):
@@ -75,9 +75,9 @@ def stringify_declaration(ext, t):
         return(f"{stringify_declaration(ext, t.type.type)}*")
     elif isinstance(t.type, ArrayDecl):
         if t.type.dim:
-            return(f"{stringify_declaration(ext, t.type.type)} {' '.join(t.quals)} [{t.type.dim.value}]")
+            return(f"{stringify_declaration(ext, t.type.type)} [{t.type.dim.value}]")
         else:
-            return(f"{stringify_declaration(ext, t.type.type)} {' '.join(t.quals)} []")
+            return(f"{stringify_declaration(ext, t.type.type)} []")
     else:
         print(t)
         print(type(t.type))

@@ -164,8 +164,8 @@ def write_implementation(filename, soname, sysincludes, initname, functions, sym
             #file.write("    return(1);\n")
             file.write("  }\n")
 
-        file.write("return 0;");
-        file.write("}")
+        file.write("return 0;\n");
+        file.write("}\n")
 
 def write_header(filename, sysincludes, initname, functions, sym_definitions):
     with open(filename, 'w') as file:

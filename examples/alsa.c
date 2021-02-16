@@ -3,8 +3,6 @@
 static char *device = "default";            /* playback device */
 unsigned char buffer[16*1024];              /* some random data */
 
-extern int initialize_asound();
-
 int main(void)
 {
     if (initialize_asound()) {

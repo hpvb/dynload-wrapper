@@ -1,0 +1,21 @@
+#define __attribute__(x)
+#define __THROW
+#define __attribute_const__
+#define __extension__
+#define __extern_inline
+#define __attribute_const__
+#define __BEGIN_DECLS
+#define __END_DECLS
+#define __inline__
+
+//#define __nptr
+//#define __endptr
+//#define __readfds
+//#define __writefds
+//#define __exceptfds
+//#define __timeout
+//#define __sigmask
+//#define __tv
+//#define __tz
+//#define __new
+//#define __old

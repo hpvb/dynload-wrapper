@@ -167,7 +167,6 @@ def write_implementation(filename, soname, sysincludes, initname, functions, sym
 
         file.write("return 0;\n");
         file.write("}\n")
-        file.write("// clang-format on\n")
 
 def write_header(filename, sysincludes, initname, functions, sym_definitions):
     with open(filename, 'w') as file:
@@ -183,7 +182,6 @@ def write_header(filename, sysincludes, initname, functions, sym_definitions):
         file.write("#ifdef __cplusplus\n")
         file.write("}\n")
         file.write("#endif\n")
-        file.write("// clang-format on\n")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

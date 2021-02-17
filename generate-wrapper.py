@@ -147,7 +147,7 @@ def write_implementation(filename, soname, sysincludes, initname, functions, sym
         file.write(f"int initialize_{initname}() {{\n")
         file.write("  void *handle;\n")
         file.write("  char *error;\n")
-        file.write(f"  handle = dlopen(\"{soname}\", RTLD_NOW | RTLD_DEEPBIND);\n")
+        file.write(f"  handle = dlopen(\"{soname}\", RTLD_LAZY);\n")
         file.write("  if (!handle) {\n")
         file.write("    fprintf(stderr, \"%s\\n\", dlerror());\n")
         file.write("    return(1);\n")

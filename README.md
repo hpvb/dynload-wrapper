@@ -21,7 +21,7 @@ Generally speaking this works fine, but if you link to libraries that themselves
 
 # Help
 ```
-./generate-wrapper.py --help
+$ ./generate-wrapper.py --help
 usage: generate-wrapper.py [-h] --include INCLUDE --sys-include SYS_INCLUDE --soname SONAME --init-name INIT_NAME --output-header OUTPUT_HEADER --output-implementation OUTPUT_IMPLEMENTATION [--omit-prefix OMIT_PREFIX]
 
 A tool to generate wrappers for run-time dlopen()ing of libraries.
@@ -39,7 +39,7 @@ optional arguments:
   --output-implementation OUTPUT_IMPLEMENTATION
                         Filename of the C file to output
   --omit-prefix OMIT_PREFIX
-                        Function prefixes to omit (eg _pa_) (may appear more than once)
+                        Omit functions that start with this prefix (eg _pa_) (may appear more than once)
 
 Example usage for wrapping pulse:
 generate-wrapper.py --include /usr/include/pulse/pulseaudio.h --sys-include '<pulse/pulseaudio.h>' --soname libpulse.so.0 --omit-prefix _pa_ --init-name pulse --output-header pulse.h --output-implementation pulse.c

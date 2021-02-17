@@ -200,7 +200,7 @@ if __name__ == "__main__":
     parser.add_argument('--init-name', help='Name to use for the initialize function. This will generate an initialize_<init-name> function. (eg pulse)', required=True)
     parser.add_argument('--output-header', help='Filename of the header to output', required=True)
     parser.add_argument('--output-implementation', help='Filename of the C file to output', required=True)
-    parser.add_argument('--omit-prefix', action='append', help='Function prefixes to omit (eg _pa_) (may appear more than once)', required=False)
+    parser.add_argument('--omit-prefix', action='append', help='Omit functions that start with this prefix (eg _pa_) (may appear more than once)', required=False)
     
     args = parser.parse_args()
     FLAGS = " ".join(sys.argv)

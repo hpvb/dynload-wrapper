@@ -36,7 +36,7 @@ except:
     print("Try installing it with pip install pycparser or using your distributions package manager.")
     sys.exit(1)
 
-VERSION="0.2"
+VERSION="0.3"
 URL="https://github.com/hpvb/dynload-wrapper"
 NOW=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 PROGNAME=sys.argv[0]
@@ -147,24 +147,27 @@ def write_implementation(filename, soname, sysincludes, initname, functions, sym
         for sym_definition in sym_definitions:
             file.write(f"{sym_definition}\n")
 
-        file.write(f"int initialize_{initname}() {{\n")
+        file.write(f"int initialize_{initname}(int verbose) {{\n")
         file.write("  void *handle;\n")
         file.write("  char *error;\n")
         file.write(f"  handle = dlopen(\"{soname}\", RTLD_LAZY);\n")
         file.write("  if (!handle) {\n")
-        file.write("    fprintf(stderr, \"%s\\n\", dlerror());\n")
+        file.write("    if (verbose) {\n")
+        file.write("      fprintf(stderr, \"%s\\n\", dlerror());\n")
+        file.write("    }\n")
         file.write("    return(1);\n")
         file.write("  }\n")
         file.write("  dlerror();\n")
 
         for function in functions:
             file.write(f"// {function}\n")
-            #file.write(f"  *(void **) (&_sym_{function}) = dlsym(handle, \"{function}\");")
             file.write(f"  *(void **) (&{function}_dylibloader_wrapper_{initname}) = dlsym(handle, \"{function}\");\n")
-            file.write("  error = dlerror();\n")
-            file.write("  if (error != NULL) {\n")
-            file.write("    fprintf(stderr, \"%s\\n\", error);\n")
-            #file.write("    return(1);\n")
+            file.write("  if (verbose) {\n")
+            file.write("    error = dlerror();\n")
+            file.write("    if (error != NULL) {\n")
+            file.write("      fprintf(stderr, \"%s\\n\", error);\n")
+            #file.write("     return(1);\n")
+            file.write("    }\n")
             file.write("  }\n")
 
         file.write("return 0;\n");
@@ -185,7 +188,7 @@ def write_header(filename, sysincludes, initname, functions, sym_definitions):
         for sym_definition in sym_definitions:
             file.write(f"extern {sym_definition}\n")
 
-        file.write(f"int initialize_{initname}();\n")
+        file.write(f"int initialize_{initname}(int verbose);\n")
 
         file.write("#ifdef __cplusplus\n")
         file.write("}\n")

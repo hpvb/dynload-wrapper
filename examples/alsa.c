@@ -5,7 +5,7 @@ unsigned char buffer[16*1024];              /* some random data */
 
 int main(void)
 {
-    if (initialize_asound()) {
+    if (initialize_asound(0)) {
         printf("Failed to load libasound\n");
 	return 1;
     }

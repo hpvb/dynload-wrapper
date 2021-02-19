@@ -214,12 +214,12 @@ enum {
 
 
 int main(int argc, char *argv[]) {
-    if (initialize_pulse()) {
+    if (initialize_pulse(0)) {
         printf("Failed to initialize pulse\n");
         return 1;
     }
 
-    if (initialize_sndfile()) {
+    if (initialize_sndfile(0)) {
         printf("Failed to initialize sndfile\n");
         return 1;
     }

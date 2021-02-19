@@ -17,7 +17,7 @@ static int do_buttonpress(XButtonEvent*, int, int);
 
 int main(int argc, char *argv [])
 {
-  if(initialize_xlib()) {
+  if(initialize_xlib(0)) {
     printf("Error initializing Xlib\n");
     return 1;
   }

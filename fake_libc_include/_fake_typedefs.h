@@ -1,6 +1,19 @@
 #ifndef _FAKE_TYPEDEFS_H
 #define _FAKE_TYPEDEFS_H
 
+#define u_char uint8_t
+#define u_short uint16_t
+#define u_int uint32_t
+#define u_long uint64_t
+
+#define u_int8_t uint8_t
+#define u_int16_t uint16_t
+#define u_int32_t uint32_t
+#define u_int64_t uint64_t
+
+#define ushort uint16_t
+#define uint uint32_t
+
 typedef int size_t;
 typedef int __builtin_va_list;
 typedef int __gnuc_va_list;
@@ -45,12 +58,6 @@ typedef int wchar_t;
 typedef int __off_t;
 typedef int __pid_t;
 typedef int __loff_t;
-typedef int u_char;
-typedef int u_short;
-typedef int u_int;
-typedef int u_long;
-typedef int ushort;
-typedef int uint;
 typedef int clock_t;
 typedef int time_t;
 typedef int daddr_t;

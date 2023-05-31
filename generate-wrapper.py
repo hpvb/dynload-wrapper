@@ -30,7 +30,7 @@ from datetime import datetime
 
 try:
     from pycparser import c_parser, c_ast, parse_file, c_generator
-    from pycparser.c_ast import Decl, FuncDecl, IdentifierType, TypeDecl, Struct, PtrDecl, EllipsisParam, ArrayDecl, Typedef, Enum
+    from pycparser.c_ast import Decl, FuncDecl, IdentifierType, TypeDecl, Struct, Union, PtrDecl, EllipsisParam, ArrayDecl, Typedef, Enum
 except:
     print("pycparser not found.")
     print("Try installing it with pip install pycparser or using your distributions package manager.")
@@ -71,6 +71,8 @@ def stringify_declaration(ext, t):
         return(f"enum {t.type.name}")
     elif isinstance(t.type, Struct):
         return(f"struct {t.type.name}{pointer}")
+    elif isinstance(t.type, Union):
+        return(f"union {t.type.name}")
     elif isinstance(t.type, PtrDecl):
         return(f"{stringify_declaration(ext, t.type.type)}*")
     elif isinstance(t.type, ArrayDecl):

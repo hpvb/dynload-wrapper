@@ -25,7 +25,7 @@ xlib.o: xlib.c xlib-wrap.h
 	$(CC) -c -o xlib.o xlib.c
 
 xlib-wrap.c xlib-wrap.h:
-	../generate-wrapper.py --include /usr/include/X11/Xlib.h --include /usr/include/X11/Xutil.h --include /usr/include/X11/XKBlib.h  --sys-include '<X11/Xlib.h>' --sys-include '<X11/Xutil.h>' --sys-include '<X11/XKBlib.h>' --soname libX11.so.6 --init-name xlib --omit-prefix XkbGetDeviceIndicatorState --omit-prefix XkbAddSymInterpret --output-header xlib-wrap.h --output-implementation xlib-wrap.c
+	../generate-wrapper.py --ignore-other --include /usr/include/X11/Xlib.h --include /usr/include/X11/Xutil.h --include /usr/include/X11/XKBlib.h  --sys-include '<X11/Xlib.h>' --sys-include '<X11/Xutil.h>' --sys-include '<X11/XKBlib.h>' --soname libX11.so.6 --init-name xlib --omit-prefix XkbGetDeviceIndicatorState --omit-prefix XkbAddSymInterpret --output-header xlib-wrap.h --output-implementation xlib-wrap.c
 
 xlib: xlib.o xlib-wrap.o
 	$(CC) xlib.o xlib-wrap.o -o xlib -ldl

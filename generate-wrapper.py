@@ -27,6 +27,7 @@ import string
 import argparse
 import textwrap
 from datetime import datetime
+from subprocess import check_output
 
 try:
     from pycparser import c_parser, c_ast, parse_file, c_generator
@@ -36,7 +37,7 @@ except:
     print("Try installing it with pip install pycparser or using your distributions package manager.")
     sys.exit(1)
 
-VERSION="0.3"
+VERSION="0.4"
 URL="https://github.com/hpvb/dynload-wrapper"
 NOW=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 PROGNAME=sys.argv[0]
@@ -86,7 +87,7 @@ def stringify_declaration(ext, t):
         print(f"Unknown t type? {ext.name}")
         sys.exit(1)
 
-def parse_header(filename, omit_prefix, initname):
+def parse_header(filename, omit_prefix, initname, ignore_headers = [], ignore_all = False, include_headers = []):
     mydir = os.path.dirname(os.path.abspath(__file__))
 
     ast = parse_file(filename, use_cpp=True, cpp_path='gcc', cpp_args=['-E', '-include', f'{mydir}/attributes.h', '-I', f'{mydir}/fake_libc_include'])
@@ -107,6 +108,20 @@ def parse_header(filename, omit_prefix, initname):
                 for o in omit_prefix:
                     if ext.name.startswith(o):
                         skip = True
+                        break
+
+            if ignore_headers:
+                for h in ignore_headers:
+                    if ext.coord.file.find(h) >= 0:
+                        skip = True
+                        break
+
+            if not skip and ignore_all:
+                skip = True
+                for h in include_headers:
+                    if ext.coord.file.find(h) >= 0:
+                        skip = False
+                        break
 
             if skip:
                 continue
@@ -216,6 +231,8 @@ if __name__ == "__main__":
     parser.add_argument('--output-header', help='Filename of the header to output', required=True)
     parser.add_argument('--output-implementation', help='Filename of the C file to output', required=True)
     parser.add_argument('--omit-prefix', action='append', help='Omit functions that start with this prefix (eg _pa_) (may appear more than once)', required=False)
+    parser.add_argument('--ignore-headers', action='append', help='Ignore the named headers, no function defintions from these headers will be included in the wrapper', required=False)
+    parser.add_argument('--ignore-other', action=argparse.BooleanOptionalAction, help='Ignore all header files not explicitly mentioned', required=False)
     
     args = parser.parse_args()
     FLAGS = " ".join(sys.argv)
@@ -224,7 +241,7 @@ if __name__ == "__main__":
     sym_definitions = []
 
     for filename in args.include:
-        f, s = parse_header(filename, args.omit_prefix, args.init_name)
+        f, s = parse_header(filename, args.omit_prefix, args.init_name, args.ignore_headers, args.ignore_other, args.include)
         for item in f:
             if item not in functions:
                 functions.append(item)

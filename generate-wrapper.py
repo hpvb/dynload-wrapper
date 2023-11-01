@@ -147,7 +147,10 @@ def generate_header(sysincludes, functions, initname):
         retval.append(f"#define {function} {function}_dylibloader_orig_{initname}")
 
     for include in sysincludes:
-        retval.append(f"#include {include}")
+        if include.startswith("<"):
+            retval.append(f"#include {include}")
+        else:
+            retval.append(f"#include \"{include}\"")
 
     for function in functions:
         retval.append(f"#undef {function}")

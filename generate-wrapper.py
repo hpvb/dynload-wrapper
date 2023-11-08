@@ -31,7 +31,7 @@ from subprocess import check_output
 
 try:
     from pycparser import c_parser, c_ast, parse_file, c_generator
-    from pycparser.c_ast import Decl, FuncDecl, IdentifierType, TypeDecl, Struct, Union, PtrDecl, EllipsisParam, ArrayDecl, Typedef, Enum
+    from pycparser.c_ast import Decl, FuncDecl, PtrDecl
 except:
     print("pycparser not found.")
     print("Try installing it with pip install pycparser or using your distributions package manager.")
@@ -43,49 +43,26 @@ NOW=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 PROGNAME=sys.argv[0]
 FLAGS=""
 
-def stringify_declaration(ext, t):
-    pointer=""
+def stringify_declaration(t):
+    generator = c_generator.CGenerator()
+    return generator.visit(t)
 
-    while isinstance(t, PtrDecl):
-        pointer+="*"
-        t = t.type
-    if isinstance(t, Decl):
-        return stringify_declaration(ext, t.type)
-    if isinstance(t, EllipsisParam):
-        return "..."
+def get_name(t):
+    if hasattr(t, "declname"):
+        return t.declname
 
-    if isinstance(t.type, IdentifierType):
-        return(f"{' '.join(t.quals)} {' '.join(t.type.names)}{pointer}")
-    elif isinstance(t, ArrayDecl):
-        if t.dim:
-            return(f"{stringify_declaration(ext, t.type)} [{t.dim.value}]")
-        else:
-            return(f"{stringify_declaration(ext, t.type)} []")
-    elif isinstance(t.type, TypeDecl):
-        return(f"{' '.join(t.type.quals)} {' '.join(t.type.type.names)}{pointer}")
-    elif isinstance(t.type, FuncDecl):
-        params = []
-        for param in t.type.args.params:
-            params.append(stringify_declaration(ext, param, names))
-        return(f"{' '.join(t.type.type.type.names)} (*{(t.type.type.declname)})({', '.join(params)})")
-    elif isinstance(t.type, Enum):
-        return(f"enum {t.type.name}")
-    elif isinstance(t.type, Struct):
-        return(f"struct {t.type.name}{pointer}")
-    elif isinstance(t.type, Union):
-        return(f"union {t.type.name}")
-    elif isinstance(t.type, PtrDecl):
-        return(f"{stringify_declaration(ext, t.type.type)}*")
-    elif isinstance(t.type, ArrayDecl):
-        if t.type.dim:
-            return(f"{stringify_declaration(ext, t.type.type)} [{t.type.dim.value}]")
-        else:
-            return(f"{stringify_declaration(ext, t.type.type)} []")
-    else:
-        print(t)
-        print(type(t.type))
-        print(f"Unknown t type? {ext.name}")
-        sys.exit(1)
+    if hasattr(t, "name"):
+        return t.name
+
+def replace_name(t, oldname, newname):
+    if hasattr(t, "declname") and t.declname == oldname:
+        t.declname = newname
+
+    if hasattr(t, "name") and t.name == oldname:
+        t.name = newname
+
+    if hasattr(t, "type"):
+        replace_name(t.type, oldname, newname)
 
 def parse_header(filename, omit_prefix, initname, ignore_headers = [], ignore_all = False, include_headers = []):
     mydir = os.path.dirname(os.path.abspath(__file__))
@@ -97,9 +74,6 @@ def parse_header(filename, omit_prefix, initname, ignore_headers = [], ignore_al
 
     for ext in ast.ext:
         if isinstance(ext, Decl):
-            params = []
-            params_anon = []
-            used_params = []
             if not isinstance(ext.type, FuncDecl):
                 continue
 
@@ -126,11 +100,22 @@ def parse_header(filename, omit_prefix, initname, ignore_headers = [], ignore_al
             if skip:
                 continue
 
-            for param in ext.type.args.params:
-                params_anon.append(stringify_declaration(ext, param))
-
-            sym_definitions.append(f"{stringify_declaration(ext, ext.type.type)} (*{ext.name}_dylibloader_wrapper_{initname})({','.join(params_anon)});".strip())
             functions.append(ext.name)
+
+            for param in ext.type.args:
+                # Parameter anonymization.
+                replace_name(param, get_name(param), "")
+
+            ptr = PtrDecl([], ext.type)
+            ext.type = ptr
+
+            if "extern" in ext.storage:
+                # We'll append "extern" later where needed.
+                ext.storage.remove("extern")
+
+            replace_name(ext, ext.name, f"{ext.name}_dylibloader_wrapper_{initname}")
+
+            sym_definitions.append(stringify_declaration(ext) + ';')
 
     return (functions, sym_definitions)
 

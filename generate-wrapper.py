@@ -31,7 +31,7 @@ from subprocess import check_output
 
 try:
     from pycparser import c_parser, c_ast, parse_file, c_generator
-    from pycparser.c_ast import Decl, FuncDecl, IdentifierType, TypeDecl, Struct, Union, PtrDecl, EllipsisParam, ArrayDecl, Typedef, Enum
+    from pycparser.c_ast import Decl, FuncDecl, IdentifierType, TypeDecl, Struct, Union, PtrDecl, EllipsisParam, ArrayDecl, Typedef, Enum, ParamList, Typename
 except:
     print("pycparser not found.")
     print("Try installing it with pip install pycparser or using your distributions package manager.")
@@ -43,49 +43,69 @@ NOW=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 PROGNAME=sys.argv[0]
 FLAGS=""
 
-def stringify_declaration(ext, t):
-    pointer=""
+def stringify_declaration(ext, t, ptrs=""):
+    result = ""
 
-    while isinstance(t, PtrDecl):
-        pointer+="*"
-        t = t.type
+    # NOTE: Pointers get accumulated throughout calls. This is to allow for
+    # special cases (like pointers to pointers and pointers to functions) to be
+    # handled correctly. In normal cases they're just appended at the end.
+    old_ptrs = ptrs
+    if not isinstance(t, FuncDecl) and not isinstance(t, PtrDecl):
+        ptrs = ""
+
     if isinstance(t, Decl):
-        return stringify_declaration(ext, t.type)
+        result =  stringify_declaration(ext, t.type, ptrs)
     if isinstance(t, EllipsisParam):
-        return "..."
+        result =  "..."
 
-    if isinstance(t.type, IdentifierType):
-        return(f"{' '.join(t.quals)} {' '.join(t.type.names)}{pointer}")
+    if isinstance(t, IdentifierType):
+        result = (f"{' '.join(t.names)}")
     elif isinstance(t, ArrayDecl):
         if t.dim:
-            return(f"{stringify_declaration(ext, t.type)} [{t.dim.value}]")
+            result = (f"{stringify_declaration(ext, t.type, ptrs)} [{t.dim.value}]")
         else:
-            return(f"{stringify_declaration(ext, t.type)} []")
-    elif isinstance(t.type, TypeDecl):
-        return(f"{' '.join(t.type.quals)} {' '.join(t.type.type.names)}{pointer}")
-    elif isinstance(t.type, FuncDecl):
+            result = (f"{stringify_declaration(ext, t.type, ptrs)} []")
+    elif isinstance(t, TypeDecl):
+        if len(t.quals) > 0:
+            result =  f"{' '.join(t.quals)} {stringify_declaration(ext, t.type, ptrs)}"
+        else:
+            result =  stringify_declaration(ext, t.type)
+    elif isinstance(t, FuncDecl):
+        result =  f"{stringify_declaration(ext, t.type)} ({ptrs})({stringify_declaration(ext, t.args)})"
+    elif isinstance(t, Enum):
+        result = (f"enum {t.name}")
+    elif isinstance(t, Struct):
+        result = (f"struct {t.name}")
+    elif isinstance(t, Union):
+        result = (f"union {t.name}")
+    elif isinstance(t, PtrDecl):
+        result = stringify_declaration(ext, t.type, ptrs + '*')
+    elif isinstance(t, ArrayDecl):
+        if t.dim:
+            result = (f"{stringify_declaration(ext, t.type, ptrs)} [{stringify_declaration(ext, t.dim.value, ptrs)}]")
+        else:
+            result = (f"{stringify_declaration(ext, t.type, ptrs)} []")
+    elif isinstance(t, ParamList):
         params = []
-        for param in t.type.args.params:
-            params.append(stringify_declaration(ext, param, names))
-        return(f"{' '.join(t.type.type.type.names)} (*{(t.type.type.declname)})({', '.join(params)})")
-    elif isinstance(t.type, Enum):
-        return(f"enum {t.type.name}")
-    elif isinstance(t.type, Struct):
-        return(f"struct {t.type.name}{pointer}")
-    elif isinstance(t.type, Union):
-        return(f"union {t.type.name}")
-    elif isinstance(t.type, PtrDecl):
-        return(f"{stringify_declaration(ext, t.type.type)}*")
-    elif isinstance(t.type, ArrayDecl):
-        if t.type.dim:
-            return(f"{stringify_declaration(ext, t.type.type)} [{t.type.dim.value}]")
-        else:
-            return(f"{stringify_declaration(ext, t.type.type)} []")
-    else:
-        print(t)
-        print(type(t.type))
-        print(f"Unknown t type? {ext.name}")
-        sys.exit(1)
+        for param in t.params:
+            params.append(stringify_declaration(ext, param, ptrs))
+        result =  ', '.join(params)
+    elif isinstance(t, Typename):
+        # Not sure what this is but it pops up. Treating it as an empty node
+        # seems to work fine.
+        result =  stringify_declaration(ext, t.type, ptrs)
+
+    # Those other two get their own treatment
+    if not isinstance(t, FuncDecl) and not isinstance(t, PtrDecl):
+        result += old_ptrs
+
+    if len(result) > 0:
+        return result
+
+    print(t)
+    print(type(t.type))
+    print(f"Unknown t type? {ext.name}")
+    sys.exit(1)
 
 def parse_header(filename, omit_prefix, initname, ignore_headers = [], ignore_all = False, include_headers = []):
     mydir = os.path.dirname(os.path.abspath(__file__))

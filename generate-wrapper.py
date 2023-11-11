@@ -23,11 +23,9 @@
 
 import os
 import sys
-import string
 import argparse
 import textwrap
 from datetime import datetime
-from subprocess import check_output
 
 try:
     from pycparser import c_parser, c_ast, parse_file, c_generator
@@ -115,7 +113,7 @@ def parse_header(filename, omit_prefix, initname, ignore_headers = [], ignore_al
 
             replace_name(ext, ext.name, f"{ext.name}_dylibloader_wrapper_{initname}")
 
-            sym_definitions.append(stringify_declaration(ext) + ';')
+            sym_definitions.append(stringify_declaration(ext))
 
     return (functions, sym_definitions)
 
@@ -150,7 +148,7 @@ def write_implementation(filename, soname, sysincludes, initname, functions, sym
         file.write("#include <stdio.h>\n")
 
         for sym_definition in sym_definitions:
-            file.write(f"{sym_definition}\n")
+            file.write(f"{sym_definition};\n")
 
         file.write(f"int initialize_{initname}(int verbose) {{\n")
         file.write("  void *handle;\n")
@@ -191,7 +189,7 @@ def write_header(filename, sysincludes, initname, functions, sym_definitions):
             file.write(f"#define {function} {function}_dylibloader_wrapper_{initname}\n")
 
         for sym_definition in sym_definitions:
-            file.write(f"extern {sym_definition}\n")
+            file.write(f"extern {sym_definition};\n")
 
         file.write(f"int initialize_{initname}(int verbose);\n")
 

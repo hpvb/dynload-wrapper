@@ -37,7 +37,7 @@ except:
     print("Try installing it with pip install pycparser or using your distributions package manager.")
     sys.exit(1)
 
-VERSION="0.4"
+VERSION="0.5"
 URL="https://github.com/hpvb/dynload-wrapper"
 NOW=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 PROGNAME=sys.argv[0]

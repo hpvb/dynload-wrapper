@@ -1,7 +1,8 @@
 #! /usr/bin/env python3
 # MIT License
 #
-# Copyright (c) 2021 Hein-Pieter van Braam-Stewart <hp@tmm.cx>
+# Copyright (c) 2021-2023 Hein-Pieter van Braam <hp@tmm.cx>
+# Copyright (c) 2021-2023 Dynload wrapper contributors
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal

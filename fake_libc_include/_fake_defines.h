@@ -31,6 +31,9 @@
 #define UINT_MAX 4294967295U
 #define RAND_MAX 32767
 #define INT_MAX 32767
+#define ULONG_MAX 4294967295UL
+
+#define CHAR_BIT 8
 
 /* C99 inttypes.h defines */
 #define PRId8 "d"

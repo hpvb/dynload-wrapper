@@ -22,8 +22,8 @@ Generally speaking this works fine, but if you link to libraries that themselves
 # Help
 ```
 $ ./generate-wrapper.py --help
-usage: generate-wrapper.py [-h] --include INCLUDE --sys-include SYS_INCLUDE --soname SONAME --init-name INIT_NAME --output-header OUTPUT_HEADER --output-implementation OUTPUT_IMPLEMENTATION [--omit-prefix OMIT_PREFIX]
-                           [--ignore-headers IGNORE_HEADERS] [--ignore-other | --no-ignore-other]
+usage: generate-wrapper.py [-h] --include INCLUDE --sys-include SYS_INCLUDE --soname SONAME --init-name INIT_NAME --output-header OUTPUT_HEADER [--implementation-header IMPLEMENTATION_HEADER]
+                           --output-implementation OUTPUT_IMPLEMENTATION [--omit-prefix OMIT_PREFIX] [--ignore-headers IGNORE_HEADERS] [--ignore-other | --no-ignore-other]
 
 A tool to generate wrappers for run-time dlopen()ing of libraries.
 
@@ -37,6 +37,8 @@ options:
                         Name to use for the initialize function. This will generate an initialize_<init-name> function. (eg pulse)
   --output-header OUTPUT_HEADER
                         Filename of the header to output
+  --implementation-header IMPLEMENTATION_HEADER
+                        Header to add to wrapper implementation (eg <X11/Xlib.h>) (may appear more than once)
   --output-implementation OUTPUT_IMPLEMENTATION
                         Filename of the C file to output
   --omit-prefix OMIT_PREFIX

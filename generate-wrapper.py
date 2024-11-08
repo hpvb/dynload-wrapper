@@ -36,7 +36,7 @@ except:
     print("Try installing it with pip install pycparser or using your distributions package manager.")
     sys.exit(1)
 
-VERSION="0.5"
+VERSION="0.6"
 URL="https://github.com/hpvb/dynload-wrapper"
 NOW=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 PROGNAME=sys.argv[0]
@@ -118,7 +118,7 @@ def parse_header(filename, omit_prefix, initname, ignore_headers = [], ignore_al
 
     return (functions, sym_definitions)
 
-def generate_header(sysincludes, functions, initname):
+def generate_header(sysincludes, functions, initname, implementation_headers):
     retval = []
     retval.append("// This file is generated. Do not edit!")
     retval.append(f"// see {URL} for details")
@@ -126,6 +126,13 @@ def generate_header(sysincludes, functions, initname):
     retval.append(f"// flags: {FLAGS}")
     retval.append("//")
     retval.append("#include <stdint.h>\n")
+
+    if implementation_headers:
+        for include in implementation_headers:
+            if include.startswith("<"):
+                retval.append(f"#include {include}")
+            else:
+                retval.append(f"#include \"{include}\"")
 
     for function in functions:
         retval.append(f"#define {function} {function}_dylibloader_orig_{initname}")
@@ -142,9 +149,9 @@ def generate_header(sysincludes, functions, initname):
     retval.append("")
     return "\n".join(retval)
 
-def write_implementation(filename, soname, sysincludes, initname, functions, sym_definitions):
+def write_implementation(filename, soname, sysincludes, initname, functions, sym_definitions, implementation_headers):
     with open(filename, 'w') as file:
-        file.write(generate_header(sysincludes, functions, initname))
+        file.write(generate_header(sysincludes, functions, initname, implementation_headers))
         file.write("#include <dlfcn.h>\n")
         file.write("#include <stdio.h>\n")
 
@@ -181,7 +188,7 @@ def write_header(filename, sysincludes, initname, functions, sym_definitions):
     with open(filename, 'w') as file:
         file.write(f"#ifndef DYLIBLOAD_WRAPPER_{initname.upper()}\n")
         file.write(f"#define DYLIBLOAD_WRAPPER_{initname.upper()}\n")
-        file.write(generate_header(sysincludes, functions, initname))
+        file.write(generate_header(sysincludes, functions, initname, None))
         file.write("#ifdef __cplusplus\n")
         file.write("extern \"C\" {\n")
         file.write("#endif\n")
@@ -216,6 +223,7 @@ if __name__ == "__main__":
     parser.add_argument('--soname', help='Soname of the wrapped library (eg libpulse.so.0)', required=True)
     parser.add_argument('--init-name', help='Name to use for the initialize function. This will generate an initialize_<init-name> function. (eg pulse)', required=True)
     parser.add_argument('--output-header', help='Filename of the header to output', required=True)
+    parser.add_argument('--implementation-header', action='append', help='Header to add to wrapper implementation (eg <X11/Xlib.h>) (may appear more than once)', required=False)
     parser.add_argument('--output-implementation', help='Filename of the C file to output', required=True)
     parser.add_argument('--omit-prefix', action='append', help='Omit functions that start with this prefix (eg _pa_) (may appear more than once)', required=False)
     parser.add_argument('--ignore-headers', action='append', help='Ignore the named headers, no function defintions from these headers will be included in the wrapper', required=False)
@@ -237,5 +245,5 @@ if __name__ == "__main__":
             if item not in sym_definitions:
                 sym_definitions.append(item)
 
-    write_implementation(args.output_implementation, args.soname, args.sys_include, args.init_name, functions, sym_definitions)
+    write_implementation(args.output_implementation, args.soname, args.sys_include, args.init_name, functions, sym_definitions, args.implementation_header)
     write_header(args.output_header, args.sys_include, args.init_name, functions, sym_definitions)

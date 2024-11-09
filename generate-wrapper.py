@@ -39,7 +39,7 @@ except:
 VERSION="0.6"
 URL="https://github.com/hpvb/dynload-wrapper"
 NOW=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-PROGNAME=sys.argv[0]
+PROGNAME=os.path.basename(sys.argv[0])
 FLAGS=""
 
 def stringify_declaration(t):
@@ -230,7 +230,7 @@ if __name__ == "__main__":
     parser.add_argument('--ignore-other', action=argparse.BooleanOptionalAction, help='Ignore all header files not explicitly mentioned', required=False)
     
     args = parser.parse_args()
-    FLAGS = " ".join(sys.argv)
+    FLAGS = PROGNAME + " " +  " ".join(sys.argv[1:])
 
     functions = []
     sym_definitions = []

@@ -21,9 +21,10 @@ Generally speaking this works fine, but if you link to libraries that themselves
 
 # Help
 ```
-$ ./generate-wrapper.py --help
-usage: generate-wrapper.py [-h] --include INCLUDE --sys-include SYS_INCLUDE --soname SONAME --init-name INIT_NAME --output-header OUTPUT_HEADER [--implementation-header IMPLEMENTATION_HEADER]
-                           --output-implementation OUTPUT_IMPLEMENTATION [--omit-prefix OMIT_PREFIX] [--ignore-headers IGNORE_HEADERS] [--ignore-other | --no-ignore-other]
+$ ./generate-wrapper.py  --help
+usage: generate-wrapper.py [-h] --include INCLUDE --sys-include SYS_INCLUDE [--include-dir INCLUDE_DIR] --soname SONAME --init-name INIT_NAME --output-header OUTPUT_HEADER
+                           [--implementation-header IMPLEMENTATION_HEADER] --output-implementation OUTPUT_IMPLEMENTATION [--omit-prefix OMIT_PREFIX] [--ignore-headers IGNORE_HEADERS]
+                           [--ignore-other | --no-ignore-other]
 
 A tool to generate wrappers for run-time dlopen()ing of libraries.
 
@@ -32,6 +33,8 @@ options:
   --include INCLUDE     Include files to read (may appear more than once)
   --sys-include SYS_INCLUDE
                         Include as they appear inside a program (eg <pulse/pulseaudio.h>) (may appear more than once)
+  --include-dir INCLUDE_DIR
+                        Directories to add to the compiler include path.
   --soname SONAME       Soname of the wrapped library (eg libpulse.so.0)
   --init-name INIT_NAME
                         Name to use for the initialize function. This will generate an initialize_<init-name> function. (eg pulse)

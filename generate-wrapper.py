@@ -36,7 +36,7 @@ except:
     print("Try installing it with pip install pycparser or using your distributions package manager.")
     sys.exit(1)
 
-VERSION="0.6"
+VERSION="0.7"
 URL="https://github.com/hpvb/dynload-wrapper"
 NOW=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 PROGNAME=os.path.basename(sys.argv[0])
@@ -63,10 +63,17 @@ def replace_name(t, oldname, newname):
     if hasattr(t, "type"):
         replace_name(t.type, oldname, newname)
 
-def parse_header(filename, omit_prefix, initname, ignore_headers = [], ignore_all = False, include_headers = []):
+def parse_header(filename, omit_prefix, initname, ignore_headers = [], ignore_all = False, include_headers = [], include_dirs = []):
     mydir = os.path.dirname(os.path.abspath(__file__))
 
-    ast = parse_file(filename, use_cpp=True, cpp_path='gcc', cpp_args=['-E', '-include', f'{mydir}/attributes.h', '-I', f'{mydir}/fake_libc_include'])
+    cpp_args = ['-E', '-include', f'{mydir}/attributes.h', '-I', f'{mydir}/fake_libc_include']
+    if include_dirs:
+        for include_dir in include_dirs:
+            cpp_args.append("-I")
+            cpp_args.append(include_dir)
+
+    print(f"cpp_args: {cpp_args}")
+    ast = parse_file(filename, use_cpp=True, cpp_path='gcc', cpp_args=cpp_args)
 
     functions = []
     sym_definitions = []
@@ -220,6 +227,7 @@ if __name__ == "__main__":
     )
     parser.add_argument('--include', action='append', help='Include files to read (may appear more than once)', required=True)
     parser.add_argument('--sys-include', action='append', help='Include as they appear inside a program (eg <pulse/pulseaudio.h>) (may appear more than once)', required=True)
+    parser.add_argument('--include-dir', action='append', help='Directories to add to the compiler include path.', required=False)
     parser.add_argument('--soname', help='Soname of the wrapped library (eg libpulse.so.0)', required=True)
     parser.add_argument('--init-name', help='Name to use for the initialize function. This will generate an initialize_<init-name> function. (eg pulse)', required=True)
     parser.add_argument('--output-header', help='Filename of the header to output', required=True)
@@ -236,7 +244,7 @@ if __name__ == "__main__":
     sym_definitions = []
 
     for filename in args.include:
-        f, s = parse_header(filename, args.omit_prefix, args.init_name, args.ignore_headers, args.ignore_other, args.include)
+        f, s = parse_header(filename, args.omit_prefix, args.init_name, args.ignore_headers, args.ignore_other, args.include, args.include_dir)
         for item in f:
             if item not in functions:
                 functions.append(item)

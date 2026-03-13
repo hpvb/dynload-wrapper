@@ -165,10 +165,10 @@ def write_implementation(filename, soname, sysincludes, initname, functions, sym
         for sym_definition in sym_definitions:
             file.write(f"{sym_definition};\n")
 
-        file.write(f"int initialize_{initname}(int verbose) {{\n")
+        file.write(f"int initialize_{initname}_explicit(const char* soname, int verbose) {{\n")
         file.write("  void *handle;\n")
         file.write("  char *error;\n")
-        file.write(f"  handle = dlopen(\"{soname}\", RTLD_LAZY);\n")
+        file.write(f"  handle = dlopen(soname, RTLD_LAZY);\n")
         file.write("  if (!handle) {\n")
         file.write("    if (verbose) {\n")
         file.write("      fprintf(stderr, \"%s\\n\", dlerror());\n")
@@ -191,6 +191,10 @@ def write_implementation(filename, soname, sysincludes, initname, functions, sym
         file.write("return 0;\n");
         file.write("}\n")
 
+        file.write(f"int initialize_{initname}(int verbose) {{\n")
+        file.write(f"  return initialize_{initname}_explicit(\"{soname}\", verbose);\n")
+        file.write("}\n")
+
 def write_header(filename, sysincludes, initname, functions, sym_definitions):
     with open(filename, 'w') as file:
         file.write(f"#ifndef DYLIBLOAD_WRAPPER_{initname.upper()}\n")
@@ -207,6 +211,7 @@ def write_header(filename, sysincludes, initname, functions, sym_definitions):
             file.write(f"extern {sym_definition};\n")
 
         file.write(f"int initialize_{initname}(int verbose);\n")
+        file.write(f"int initialize_{initname}_explicit(const char* soname, int verbose);\n")
 
         file.write("#ifdef __cplusplus\n")
         file.write("}\n")

@@ -57,9 +57,6 @@ def replace_name(t, oldname, newname):
     if hasattr(t, "declname") and t.declname == oldname:
         t.declname = newname
 
-    if hasattr(t, "name") and t.name == oldname:
-        t.name = newname
-
     if hasattr(t, "type"):
         replace_name(t.type, oldname, newname)
 

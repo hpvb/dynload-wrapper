@@ -35,7 +35,8 @@ options:
                         Include as they appear inside a program (eg <pulse/pulseaudio.h>) (may appear more than once)
   --include-dir INCLUDE_DIR
                         Directories to add to the compiler include path.
-  --soname SONAME       Soname of the wrapped library (eg libpulse.so.0)
+  --soname [MACRO,]SONAME
+                        Soname of the wrapped library (eg libpulse.so.0) (may appear more than once). Additional occurences must include a predefined macro prefix (eg __OpenBSD__,libpulse.so).
   --init-name INIT_NAME
                         Name to use for the initialize function. This will generate an initialize_<init-name> function. (eg pulse)
   --output-header OUTPUT_HEADER
@@ -52,8 +53,8 @@ options:
                         Ignore all header files not explicitly mentioned
 
 Example usage for wrapping pulse:
-generate-wrapper.py --include /usr/include/pulse/pulseaudio.h --sys-include '<pulse/pulseaudio.h>' --soname libpulse.so.0 --omit-prefix _pa_ --init-name pulse --output-header pulse.h --output-implementation pulse.c
+generate-wrapper.py --include /usr/include/pulse/pulseaudio.h --sys-include '<pulse/pulseaudio.h>' --soname libpulse.so.0 --soname __OpenBSD__,libpulse.so --omit-prefix _pa_ --init-name pulse --output-header pulse.h --output-implementation pulse.c
 
 Example usage for wrapping X:
-generate-wrapper.py --include /usr/include/X11/Xlib.h --include /usr/include/X11/Xutil.h --include /usr/include/X11/XKBlib.h  --sys-include '<X11/Xlib.h>' --sys-include '<X11/Xutil.h>' --sys-include '<X11/XKBlib.h>' --soname libX11.so.6 --init-name xlib --omit-prefix XkbGetDeviceIndicatorState --omit-prefix XkbAddSymInterpret --output-header xlib.h --output-implementation xlib.c
+generate-wrapper.py --include /usr/include/X11/Xlib.h --include /usr/include/X11/Xutil.h --include /usr/include/X11/XKBlib.h  --sys-include '<X11/Xlib.h>' --sys-include '<X11/Xutil.h>' --sys-include '<X11/XKBlib.h>' --soname libX11.so.6 --soname __OpenBSD__,libX11.so --init-name xlib --omit-prefix XkbGetDeviceIndicatorState --omit-prefix XkbAddSymInterpret --output-header xlib.h --output-implementation xlib.c
 ```

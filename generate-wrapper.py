@@ -156,7 +156,7 @@ def generate_header(sysincludes, functions, initname, implementation_headers):
     retval.append("")
     return "\n".join(retval)
 
-def write_implementation(filename, soname, sysincludes, initname, functions, sym_definitions, implementation_headers):
+def write_implementation(filename, sonames, sysincludes, initname, functions, sym_definitions, implementation_headers):
     with open(filename, 'w') as file:
         file.write(generate_header(sysincludes, functions, initname, implementation_headers))
         file.write("#include <dlfcn.h>\n")
@@ -165,10 +165,30 @@ def write_implementation(filename, soname, sysincludes, initname, functions, sym
         for sym_definition in sym_definitions:
             file.write(f"{sym_definition};\n")
 
+        first_name = True
+        fallback_soname = ""
+        for value in sonames:
+            if value.count(",") == 0:
+                fallback_soname = value
+                continue
+            macro = value.split(",", 1)[0]
+            soname = value.split(",", 1)[1]
+            if first_name:
+                file.write(f"#ifdef {macro}\n")
+                first_name = False
+            else:
+                file.write(f"#elif defined({macro})\n")
+            file.write(f"#define SONAME \"{soname}\"\n")
+        if len(sonames) > 1:
+            file.write("#else\n")
+        file.write(f"#define SONAME \"{fallback_soname}\"\n")
+        if len(sonames) > 1:
+            file.write("#endif\n")
+
         file.write(f"int initialize_{initname}(int verbose) {{\n")
         file.write("  void *handle;\n")
         file.write("  char *error;\n")
-        file.write(f"  handle = dlopen(\"{soname}\", RTLD_LAZY);\n")
+        file.write("  handle = dlopen(SONAME, RTLD_LAZY);\n")
         file.write("  if (!handle) {\n")
         file.write("    if (verbose) {\n")
         file.write("      fprintf(stderr, \"%s\\n\", dlerror());\n")
@@ -219,16 +239,16 @@ if __name__ == "__main__":
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=textwrap.dedent('''
             Example usage for wrapping pulse:
-            %(prog)s --include /usr/include/pulse/pulseaudio.h --sys-include '<pulse/pulseaudio.h>' --soname libpulse.so.0 --omit-prefix _pa_ --init-name pulse --output-header pulse.h --output-implementation pulse.c
+            %(prog)s --include /usr/include/pulse/pulseaudio.h --sys-include '<pulse/pulseaudio.h>' --soname libpulse.so.0 --soname __OpenBSD__,libpulse.so --omit-prefix _pa_ --init-name pulse --output-header pulse.h --output-implementation pulse.c
 
             Example usage for wrapping X:
-            %(prog)s --include /usr/include/X11/Xlib.h --include /usr/include/X11/Xutil.h --include /usr/include/X11/XKBlib.h  --sys-include '<X11/Xlib.h>' --sys-include '<X11/Xutil.h>' --sys-include '<X11/XKBlib.h>' --soname libX11.so.6 --init-name xlib --omit-prefix XkbGetDeviceIndicatorState --omit-prefix XkbAddSymInterpret --output-header xlib.h --output-implementation xlib.c
+            %(prog)s --include /usr/include/X11/Xlib.h --include /usr/include/X11/Xutil.h --include /usr/include/X11/XKBlib.h  --sys-include '<X11/Xlib.h>' --sys-include '<X11/Xutil.h>' --sys-include '<X11/XKBlib.h>' --soname libX11.so.6 --soname __OpenBSD__,libX11.so --init-name xlib --omit-prefix XkbGetDeviceIndicatorState --omit-prefix XkbAddSymInterpret --output-header xlib.h --output-implementation xlib.c
         ''')
     )
     parser.add_argument('--include', action='append', help='Include files to read (may appear more than once)', required=True)
     parser.add_argument('--sys-include', action='append', help='Include as they appear inside a program (eg <pulse/pulseaudio.h>) (may appear more than once)', required=True)
     parser.add_argument('--include-dir', action='append', help='Directories to add to the compiler include path.', required=False)
-    parser.add_argument('--soname', help='Soname of the wrapped library (eg libpulse.so.0)', required=True)
+    parser.add_argument('--soname', action='append', help='Soname of the wrapped library (eg libpulse.so.0) (may appear more than once). Additional occurences must include a predefined macro prefix (eg __OpenBSD__,libpulse.so).', required=True)
     parser.add_argument('--init-name', help='Name to use for the initialize function. This will generate an initialize_<init-name> function. (eg pulse)', required=True)
     parser.add_argument('--output-header', help='Filename of the header to output', required=True)
     parser.add_argument('--implementation-header', action='append', help='Header to add to wrapper implementation (eg <X11/Xlib.h>) (may appear more than once)', required=False)
@@ -252,6 +272,14 @@ if __name__ == "__main__":
         for item in s: 
             if item not in sym_definitions:
                 sym_definitions.append(item)
+
+    fallback_count = 0
+    for value in args.soname:
+        if value.count(",") == 0:
+            fallback_count += 1
+
+    if fallback_count != 1:
+        sys.exit("There must be exactly one --soname argument with no predefined macro prefix.")
 
     write_implementation(args.output_implementation, args.soname, args.sys_include, args.init_name, functions, sym_definitions, args.implementation_header)
     write_header(args.output_header, args.sys_include, args.init_name, functions, sym_definitions)
